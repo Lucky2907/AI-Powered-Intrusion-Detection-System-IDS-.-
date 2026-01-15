@@ -1,0 +1,62 @@
+{
+  "model_type": "RandomForest",
+  "model_version": "1.0.0",
+  "training_date": "2025-12-29T12:29:27.894904",
+  "n_samples": 10000,
+  "n_features": 31,
+  "feature_names": [
+    "flow_duration",
+    "flow_bytes_s",
+    "flow_packets_s",
+    "total_fwd_packets",
+    "total_bwd_packets",
+    "fwd_packet_length_max",
+    "fwd_packet_length_mean",
+    "fwd_packet_length_std",
+    "bwd_packet_length_max",
+    "bwd_packet_length_mean",
+    "bwd_packet_length_std",
+    "fwd_psh_flags",
+    "fwd_urg_flags",
+    "bwd_psh_flags",
+    "bwd_urg_flags",
+    "fin_flag_count",
+    "syn_flag_count",
+    "rst_flag_count",
+    "psh_flag_count",
+    "ack_flag_count",
+    "urg_flag_count",
+    "fwd_iat_total",
+    "fwd_iat_mean",
+    "fwd_iat_std",
+    "fwd_iat_max",
+    "fwd_iat_min",
+    "bwd_iat_total",
+    "bwd_iat_mean",
+    "bwd_iat_std",
+    "bwd_iat_max",
+    "bwd_iat_min"
+  ],
+  "classes": [
+    "BENIGN",
+    "Bot",
+    "Brute Force",
+    "DDoS",
+    "PortScan"
+  ],
+  "n_classes": 5,
+  "training_accuracy": 0.9402,
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 20,
+    "min_samples_split": 5,
+    "min_samples_leaf": 2
+  },
+  "class_distribution": {
+    "BENIGN": 8484,
+    "DDoS": 506,
+    "PortScan": 399,
+    "Bot": 302,
+    "Brute Force": 309
+  }
+}
