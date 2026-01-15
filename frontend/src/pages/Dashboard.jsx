@@ -21,10 +21,12 @@ import toast from 'react-hot-toast'
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
+  const [recentAlerts, setRecentAlerts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchDashboardData()
+    fetchRecentAlerts()
     
     // Connect to WebSocket
     const socket = io('http://localhost:3000')
@@ -41,11 +43,13 @@ export default function Dashboard() {
     // Listen for new alerts
     socket.on('new_alert', () => {
       fetchDashboardData()
+      fetchRecentAlerts()
     })
     
     // Auto-refresh every 5 seconds
     const interval = setInterval(() => {
       fetchDashboardData()
+      fetchRecentAlerts()
     }, 5000)
     
     return () => {
@@ -63,6 +67,26 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchRecentAlerts = async () => {
+    try {
+      const response = await api.get('/alerts?limit=5&sortBy=createdAt&sortOrder=DESC')
+      setRecentAlerts(response.data.data || [])
+    } catch (error) {
+      console.error('Failed to fetch recent alerts')
+    }
+  }
+
+  const getTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000)
+    if (seconds < 60) return `${seconds} seconds ago`
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+    const days = Math.floor(hours / 24)
+    return `${days} day${days !== 1 ? 's' : ''} ago`
   }
 
   if (loading) {
@@ -105,11 +129,22 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="p-8 animate-fade-in">
+    <div className="p-8 animate-fade-in bg-slate-50 dark:bg-slate-900 min-h-screen">
       {/* Header */}
-      <div className="mb-8 border-b border-slate-700/50 pb-6">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent mb-2 drop-shadow-lg">Dashboard</h1>
-        <p className="text-slate-400 text-lg">Real-time network security monitoring and threat detection</p>
+      <div className="mb-8 pb-6 border-b-2 border-slate-200 dark:border-slate-700/50">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 rounded-xl flex items-center justify-center shadow-lg">
+            <Shield className="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-1">
+              Dashboard
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 text-base">
+              Real-time network security monitoring and threat detection
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -117,39 +152,41 @@ export default function Dashboard() {
         {statCards.map((stat, index) => (
           <div
             key={index}
-            className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700 p-6 hover:border-slate-600 hover:shadow-xl hover:shadow-slate-900/50 transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group"
+            className="relative bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group"
           >
             {/* Animated background gradient */}
             <div className={`absolute inset-0 bg-gradient-to-r ${
-              stat.color === 'blue' ? 'from-blue-600/10 to-transparent' :
-              stat.color === 'red' ? 'from-red-600/10 to-transparent' :
-              stat.color === 'yellow' ? 'from-yellow-600/10 to-transparent' :
-              'from-green-600/10 to-transparent'
+              stat.color === 'blue' ? 'from-blue-600/5 to-transparent dark:from-blue-600/10' :
+              stat.color === 'red' ? 'from-red-600/5 to-transparent dark:from-red-600/10' :
+              stat.color === 'yellow' ? 'from-yellow-600/5 to-transparent dark:from-yellow-600/10' :
+              'from-green-600/5 to-transparent dark:from-green-600/10'
             } opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
             
             <div className="relative z-10 flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${
-                stat.color === 'blue' ? 'from-blue-600/20 to-blue-600/5' :
-                stat.color === 'red' ? 'from-red-600/20 to-red-600/5' :
-                stat.color === 'yellow' ? 'from-yellow-600/20 to-yellow-600/5' :
-                'from-green-600/20 to-green-600/5'
+                stat.color === 'blue' ? 'from-blue-100 to-blue-50 dark:from-blue-600/20 dark:to-blue-600/5' :
+                stat.color === 'red' ? 'from-red-100 to-red-50 dark:from-red-600/20 dark:to-red-600/5' :
+                stat.color === 'yellow' ? 'from-yellow-100 to-yellow-50 dark:from-yellow-600/20 dark:to-yellow-600/5' :
+                'from-green-100 to-green-50 dark:from-green-600/20 dark:to-green-600/5'
               } backdrop-blur-sm`}>
                 <stat.icon className={`w-6 h-6 ${
-                  stat.color === 'blue' ? 'text-blue-400' :
-                  stat.color === 'red' ? 'text-red-400' :
-                  stat.color === 'yellow' ? 'text-yellow-400' :
-                  'text-green-400'
+                  stat.color === 'blue' ? 'text-blue-600 dark:text-blue-400' :
+                  stat.color === 'red' ? 'text-red-600 dark:text-red-400' :
+                  stat.color === 'yellow' ? 'text-yellow-600 dark:text-yellow-400' :
+                  'text-green-600 dark:text-green-400'
                 }`} />
               </div>
               <span className={`text-sm font-medium flex items-center gap-1 px-2 py-1 rounded-full ${
-                stat.change.startsWith('+') ? 'text-green-400 bg-green-900/20' : 'text-red-400 bg-red-900/20'
+                stat.change.startsWith('+') 
+                  ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' 
+                  : 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20'
               }`}>
                 {stat.change.startsWith('+') ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                 {stat.change}
               </span>
             </div>
-            <h3 className="text-4xl font-bold text-white mb-2 drop-shadow-lg tracking-tight">{stat.value.toLocaleString()}</h3>
-            <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">{stat.title}</p>
+            <h3 className="text-4xl font-bold text-slate-900 dark:text-white mb-2 tracking-tight">{stat.value.toLocaleString()}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-medium">{stat.title}</p>
           </div>
         ))}
       </div>
@@ -157,9 +194,9 @@ export default function Dashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Traffic Over Time */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700 p-6 hover:border-slate-600 hover:shadow-lg transition-all duration-300">
-          <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" />
+        <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg transition-all duration-300">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Traffic Over Time
           </h3>
           <ResponsiveContainer width="100%" height={300}>
@@ -181,13 +218,18 @@ export default function Dashboard() {
                   <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.5} />
-              <XAxis dataKey="time" stroke="#94a3b8" style={{ fontSize: '12px' }} />
-              <YAxis stroke="#94a3b8" style={{ fontSize: '12px' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-700" opacity={0.5} />
+              <XAxis dataKey="time" stroke="#64748b" className="dark:stroke-slate-400" style={{ fontSize: '12px' }} />
+              <YAxis stroke="#64748b" className="dark:stroke-slate-400" style={{ fontSize: '12px' }} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)' }}
-                labelStyle={{ color: '#f1f5f9', fontWeight: 'bold' }}
-                itemStyle={{ color: '#cbd5e1' }}
+                contentStyle={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '8px', 
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' 
+                }}
+                labelStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+                itemStyle={{ color: '#475569' }}
               />
               <Legend wrapperStyle={{ paddingTop: '10px' }} />
               <Area type="monotone" dataKey="normal" stroke="#3b82f6" strokeWidth={2} fill="url(#colorNormal)" name="Normal Traffic" />
@@ -197,8 +239,8 @@ export default function Dashboard() {
         </div>
 
         {/* Attack Types Distribution */}
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700 p-6 hover:border-slate-600 hover:shadow-lg transition-all duration-300">
-          <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-lg transition-all duration-300">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
             <Shield className="w-5 h-5 text-red-400" />
             Attack Types Distribution
           </h3>
@@ -232,20 +274,40 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Alerts */}
-      <div className="mt-6 bg-slate-800 rounded-lg border border-slate-700 p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">Recent Critical Alerts</h3>
+      {/* Recent Critical Alerts */}
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+          Recent Critical Alerts
+        </h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-red-900/20 border border-red-900/30 rounded-lg">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              <div>
-                <p className="text-white font-medium">DDoS Attack Detected</p>
-                <p className="text-sm text-slate-400">Source: 192.168.1.50 • 2 minutes ago</p>
+          {recentAlerts.length > 0 ? (
+            recentAlerts.map((alert) => (
+              <div key={alert.id} className="flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg hover:border-red-300 dark:hover:border-red-800 transition-colors">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-500" />
+                  <div>
+                    <p className="text-slate-900 dark:text-white font-medium">{alert.title}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                      {alert.attackCategory} • {getTimeAgo(alert.createdAt)}
+                    </p>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                  alert.severity >= 5 ? 'bg-red-600 text-white' :
+                  alert.severity >= 4 ? 'bg-orange-600 text-white' :
+                  'bg-yellow-600 text-white'
+                }`}>
+                  {alert.alertType}
+                </span>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+              <AlertTriangle className="w-12 h-12 mx-auto mb-2 opacity-20" />
+              <p>No recent alerts</p>
             </div>
-            <span className="px-3 py-1 bg-red-600 text-white text-xs font-medium rounded-full">CRITICAL</span>
-          </div>
+          )}
         </div>
       </div>
     </div>
