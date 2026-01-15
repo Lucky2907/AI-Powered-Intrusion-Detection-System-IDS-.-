@@ -38,6 +38,7 @@ app.use('/api/alerts', require('./src/routes/alert.routes'));
 app.use('/api/users', require('./src/routes/user.routes'));
 app.use('/api/dashboard', require('./src/routes/dashboard.routes'));
 app.use('/api/system', require('./src/routes/system.routes'));
+app.use('/api/export', require('./src/routes/export.routes'));
 
 // Error handling
 app.use((req, res) => res.status(404).json({ error: 'Not Found', message: `Cannot ${req.method} ${req.originalUrl}` }));

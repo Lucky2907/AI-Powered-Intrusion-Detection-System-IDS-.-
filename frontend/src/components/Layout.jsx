@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
+import { useThemeStore } from '../store/themeStore'
 import {
   Shield,
   LayoutDashboard,
@@ -7,11 +8,14 @@ import {
   AlertTriangle,
   Settings,
   LogOut,
-  User
+  User,
+  Moon,
+  Sun
 } from 'lucide-react'
 
 export default function Layout() {
   const { user, logout } = useAuthStore()
+  const { darkMode, toggleDarkMode } = useThemeStore()
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -21,17 +25,17 @@ export default function Layout() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 w-64 bg-slate-800 border-r border-slate-700">
+      <div className="fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-colors">
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-700">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
             <Shield className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">AI-IDS</h1>
-            <p className="text-xs text-slate-400">v1.0.0</p>
+            <h1 className="text-lg font-bold text-slate-900 dark:text-white">AI-IDS</h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400">v1.0.0</p>
           </div>
         </div>
 
@@ -46,7 +50,7 @@ export default function Layout() {
                 `flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`
               }
             >
@@ -56,31 +60,42 @@ export default function Layout() {
           ))}
         </nav>
 
+        {/* Dark Mode Toggle */}
+        <div className="absolute bottom-20 left-0 right-0 px-4">
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          >
+            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            {darkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
+        </div>
+
         {/* User Profile */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-slate-400" />
+              <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-slate-600 dark:text-slate-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">{user?.username}</p>
-                <p className="text-xs text-slate-400 capitalize">{user?.role}</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{user?.username}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
               </div>
             </div>
             <button
               onClick={logout}
-              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               title="Logout"
             >
-              <LogOut className="w-5 h-5 text-slate-400" />
+              <LogOut className="w-5 h-5 text-slate-600 dark:text-slate-400" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="ml-64 min-h-screen">
+      <div className="ml-64 min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors">
         <Outlet />
       </div>
     </div>

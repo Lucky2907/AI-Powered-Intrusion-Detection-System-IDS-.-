@@ -5,6 +5,7 @@ const axios = require('axios');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 const db = require('../models');
 const logger = require('../utils/logger');
+const { sendAlertEmail } = require('../utils/email.service');
 
 const ML_API_URL = process.env.ML_API_URL || 'http://localhost:5000/api';
 
@@ -242,6 +243,20 @@ router.post('/log', authenticate, async (req, res) => {
       // Emit WebSocket event for real-time alert
       const io = req.app.get('io');
       io.to('alerts').emit('new_alert', alert);
+
+      // Send email for critical alerts
+      if (alert.severity >= 4) {
+        sendAlertEmail({
+          alert,
+          trafficLog: {
+            srcIp: src_ip,
+            dstIp: dst_ip,
+            dstPort: dst_port,
+            protocol,
+            confidenceScore: confidence
+          }
+        }).catch(err => logger.error('Email send failed:', err));
+      }
 
       logger.warn(`Attack logged: ${predicted_class} from ${src_ip} (confidence: ${confidence})`);
     }
