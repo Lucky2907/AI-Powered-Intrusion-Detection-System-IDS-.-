@@ -2,7 +2,14 @@
   "name": "ai-ids-frontend",
   "private": true,
   "version": "1.0.0",
+  "description": "Frontend Dashboard for AI-Powered Intrusion Detection System",
   "type": "module",
+  "author": "Abhishek Dhaundiyal <dhaundiyalabhishek634@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lucky2907/AI-Powered-Intrusion-Detection-System-IDS-.-"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
